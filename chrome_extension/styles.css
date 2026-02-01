@@ -1,0 +1,370 @@
+/* styles.css - Transfermarkt Theme & Modal Styles */
+
+:host {
+    all: initial;
+    font-family: 'Open Sans', 'Segoe UI', Tahoma, sans-serif;
+    z-index: 2147483647;
+    --tm-blue: #00193F;
+    --tm-blue-hover: #002255;
+    --tm-light-blue: #f2f7fc;
+    --tm-orange: #ff5f00;
+    --tm-gray-bg: #f5f5f5;
+    --tm-border: #ddd;
+    --tm-text: #333;
+}
+
+.tm-overlay {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 480px;
+    /* Daha geniş */
+    max-height: 90vh;
+    background: white;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+    /* Köşeli tasarım, TM tarzı */
+    display: flex;
+    flex-direction: column;
+    animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 1px solid #ccc;
+    font-size: 13px;
+    color: var(--tm-text);
+    overflow: hidden;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(110%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* HEADER */
+.tm-header {
+    background-color: var(--tm-blue);
+    color: white;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tm-logo {
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+}
+
+.tm-close {
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+    opacity: 0.8;
+}
+
+.tm-close:hover {
+    opacity: 1;
+}
+
+/* TABS */
+.tm-tabs {
+    display: flex;
+    background: #e9e9e9;
+    border-bottom: 2px solid var(--tm-blue);
+}
+
+.tm-tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px 5px;
+    cursor: pointer;
+    background: #e9e9e9;
+    color: #666;
+    font-weight: 600;
+    font-size: 12px;
+    transition: background 0.2s;
+    border-right: 1px solid #ddd;
+}
+
+.tm-tab:hover {
+    background: #ddd;
+}
+
+.tm-tab.active {
+    background: var(--tm-blue);
+    color: white;
+}
+
+/* CONTENT AREA */
+.tm-content {
+    overflow-y: auto;
+    flex: 1;
+    background: var(--tm-gray-bg);
+    padding: 10px;
+    scrollbar-width: thin;
+}
+
+/* PROFILE SECTION */
+.tm-profile-card {
+    background: white;
+    padding: 15px;
+    border: 1px solid var(--tm-border);
+    margin-bottom: 10px;
+    display: flex;
+    gap: 15px;
+}
+
+.tm-profile-img-box {
+    text-align: center;
+    width: 100px;
+}
+
+.tm-profile-img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    /* OR cover */
+    border: 1px solid #ccc;
+    background: white;
+    padding: 2px;
+}
+
+.tm-info-box {
+    flex: 1;
+}
+
+.tm-name-header {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--tm-blue);
+    margin-bottom: 5px;
+    line-height: 1.2;
+}
+
+.tm-club-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.tm-val-box {
+    background: var(--tm-blue);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: white;
+    padding: 8px 10px;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.tm-val-label {
+    font-size: 10px;
+    font-weight: normal;
+    opacity: 0.8;
+    display: block;
+}
+
+.tm-val-last {
+    font-size: 9px;
+    text-align: right;
+    opacity: 0.7;
+    font-weight: normal;
+    margin-top: 2px;
+}
+
+/* DATA TABLES */
+.tm-table-box {
+    background: white;
+    border: 1px solid var(--tm-border);
+    margin-bottom: 15px;
+}
+
+.tm-table-header {
+    background: var(--tm-blue);
+    color: white;
+    padding: 6px 10px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.tm-data-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 12px;
+}
+
+.tm-data-row:last-child {
+    border-bottom: none;
+}
+
+.tm-data-row:nth-child(even) {
+    background: #fcfcfc;
+}
+
+.tm-label {
+    color: #666;
+    width: 40%;
+}
+
+.tm-val {
+    color: #000;
+    font-weight: 600;
+    width: 60%;
+    text-align: right;
+}
+
+/* PERFORMANCE TABLE */
+.tm-perf-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+}
+
+.tm-perf-table th {
+    background: #f0f0f0;
+    padding: 6px;
+    text-align: center;
+    color: #666;
+    border-bottom: 2px solid #ccc;
+}
+
+.tm-perf-table td {
+    padding: 6px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+}
+
+.tm-comp-col {
+    text-align: left !important;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* TRANSFER HISTORY */
+.tm-transfer-row {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 1fr 1fr;
+    padding: 8px;
+    border-bottom: 1px solid #eee;
+    font-size: 11px;
+    align-items: center;
+}
+
+.tm-transfer-header {
+    font-weight: bold;
+    background: #e9e9e9;
+    color: #555;
+}
+
+.tm-club-change {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.tm-club-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.tm-fee {
+    font-weight: bold;
+    color: var(--tm-blue);
+}
+
+/* MARKET VALUE CHART */
+.tm-chart-container {
+    padding: 15px;
+    height: 200px;
+    position: relative;
+    background: white;
+    border: 1px solid #ddd;
+}
+
+/* LIST RESULTS */
+.tm-list-item {
+    display: flex;
+    padding: 8px;
+    background: white;
+    border-bottom: 1px solid #ddd;
+    cursor: pointer;
+    align-items: center;
+    gap: 10px;
+}
+
+.tm-list-item:hover {
+    background: #eef5ff;
+}
+
+/* UTILS */
+.tm-hidden {
+    display: none;
+}
+
+.tm-flex-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.tm-flag {
+    width: 14px;
+    height: 10px;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+
+.tm-social-icon {
+    width: 16px;
+    height: 16px;
+    opacity: 0.7;
+    cursor: pointer;
+}
+
+.tm-social-icon:hover {
+    opacity: 1;
+}
+
+.tm-loading {
+    text-align: center;
+    padding: 40px;
+    color: var(--tm-blue);
+}
+
+.tm-spinner {
+    width: 30px;
+    height: 30px;
+    border: 3px solid #eee;
+    border-top: 3px solid var(--tm-blue);
+    border-radius: 50%;
+    margin: 0 auto 10px;
+    animation: spin 1s infinite linear;
+}
+
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.tm-error {
+    padding: 15px;
+    color: red;
+    text-align: center;
+    background: #fff0f0;
+    border: 1px solid #ffcccc;
+    margin: 10px;
+}
