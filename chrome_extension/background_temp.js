@@ -1,6 +1,6 @@
 /* background.js - Service Worker */
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = "https://transfermarkt-350k.onrender.com/";
 
 // Context Menu Oluşturma
 chrome.runtime.onInstalled.addListener(() => {

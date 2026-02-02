@@ -4,7 +4,7 @@ let tmOverlayContainer = null;
 let tmShadowRoot = null;
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "LIST" || message.type === "DETAILS" || message.type === "ERROR") {
+  if (message.type === "LIST" || message.type === "DETAILS" || message.type === "ERROR" || message.type === "LOADING") {
     showModal(message);
   }
 });

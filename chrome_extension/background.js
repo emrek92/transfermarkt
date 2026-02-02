@@ -1,6 +1,6 @@
 /* background.js - Service Worker */
 
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = "https://transfermarkt-350k.onrender.com";
 
 // Context Menu Oluşturma
 chrome.runtime.onInstalled.addListener(() => {
@@ -63,6 +63,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
+// Yardımcı: Metni normalize et (aksanları kaldır, küçük harfe çevir, noktalamaları sil)
+function normalizeText(text) {
+    if (!text) return "";
+    return text
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "") // Aksanları kaldır
+        .replace(/[^\w\s]/gi, '')       // Noktalamaları kaldır (N'Golo -> ngolo)
+        .toLocaleLowerCase('tr')
+        .trim();
+}
+
 async function handleSearch(query, tabId = null, sendResponse = null, isUrl = false) {
     try {
         // TabId varsa (Context Menu), loading mesajını güvenli gönder
@@ -81,23 +92,35 @@ async function handleSearch(query, tabId = null, sendResponse = null, isUrl = fa
 
         const searchRes = await fetch(`${API_BASE}/search?name=${encodeURIComponent(query)}`);
         const searchData = await searchRes.json();
-        let results = searchData.results;
+        const originalResults = searchData.results || [];
+        let results = [...originalResults];
 
         // FİLTRELEME
         // Sadece tek kelimelik aramalarda filtre uygula (Arda/Sardar vb.)
-        if (results && results.length > 0) {
+        if (results.length > 0) {
             const qLower = query.toLocaleLowerCase('tr').trim();
             const isMultiWord = qLower.includes(' ');
 
             if (!isMultiWord) {
-                results = results.filter(r => {
-                    const parts = r.name.toLocaleLowerCase('tr').split(/[\s-]+/);
-                    return parts.some(p => p.startsWith(qLower));
+                const qNormalized = normalizeText(query);
+                const filtered = results.filter(r => {
+                    // İsimdeki her kelimeyi veya ismin tamamını kontrol et
+                    const nameNormalized = normalizeText(r.name);
+                    if (nameNormalized.includes(qNormalized)) return true;
+
+                    const parts = r.name.split(/[\s-]+/);
+                    return parts.some(p => normalizeText(p).startsWith(qNormalized));
                 });
+
+                // Eğer filtreleme her şeyi sildiyse (hatalı bir eşleşme önleme olabilir), 
+                // orijinal sonuçlara geri dönelim ki "bulunamadı" demesin.
+                if (filtered.length > 0) {
+                    results = filtered;
+                }
             }
         }
 
-        if (!results || results.length === 0) {
+        if (results.length === 0) {
             const msg = { type: "ERROR", message: "Oyuncu bulunamadı." };
             if (sendResponse) sendResponse(msg);
             else if (tabId) sendMessageToContent(tabId, msg);
@@ -105,7 +128,6 @@ async function handleSearch(query, tabId = null, sendResponse = null, isUrl = fa
         }
 
         // TEK SONUÇ KONTROLÜ
-        // Birden fazla sonuç varsa (isim tam uysa bile) listeyi gösteriyoruz.
         if (results.length === 1) {
             const targetPlayer = results[0];
             const detailRes = await fetch(`${API_BASE}/player?url=${encodeURIComponent(targetPlayer.url)}`);
