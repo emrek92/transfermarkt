@@ -23,30 +23,86 @@ HEADERS = {
 BASE_URL = "https://www.transfermarkt.com.tr"
 
 def search_players(player_name):
-    search_url = f"{BASE_URL}/schnellsuche/ergebnis/schnellsuche?query={urllib.parse.quote(player_name)}"
+    # Use params for safer URL encoding (handles spaces etc. correctly)
+    search_url = f"{BASE_URL}/schnellsuche/ergebnis/schnellsuche"
+    params = {'query': player_name}
     results = []
     seen_urls = set()
     try:
-        response = requests.get(search_url, headers=HEADERS, timeout=10)
+        response = requests.get(search_url, headers=HEADERS, params=params, timeout=10)
+        
+        if response.status_code == 403:
+            print(f"Transfermarkt access forbidden (403) for: {player_name}")
+            return results
+        if response.status_code != 200:
+            print(f"Transfermarkt returned {response.status_code} for: {player_name}")
+            return results
+        
+        # 1. Kontrol: Eğer direkt profile yönlendiyse (Tek sonuç durumu)
+        if "/profil/spieler/" in response.url:
+            soup = BeautifulSoup(response.content, 'html.parser')
+            name = "-"
+            # Name extraction on profile page
+            header = soup.find('header', class_='data-header')
+            if header:
+                h1 = header.find('h1')
+                if h1: name = h1.get_text(separator=' ', strip=True)
+            
+            # Use real profile URL (response.url might contain fragments)
+            profile_url = response.url.split('?')[0]
+            return [{'name': name, 'url': profile_url, 'image_url': '', 'club': 'Direkt Sonuç'}]
+
         soup = BeautifulSoup(response.content, 'html.parser')
-        table = soup.find('table', class_='items')
-        if not table: return results
-        for row in table.find('tbody').find_all('tr', recursive=False):
+        
+        # 2. Arama kutularını bul
+        player_table = None
+        boxes = soup.find_all('div', class_='box')
+        for box in boxes:
+            header = box.find('h2', class_='content-box-headline')
+            if header and ('Futbolcu' in header.get_text() or 'Player' in header.get_text()):
+                player_table = box.find('table', class_='items')
+                break
+        
+        if not player_table:
+            player_table = soup.find('table', class_='items')
+            
+        if not player_table:
+            # Fallback: Eğer hiç sonuç yoksa ve isim çok kelimeliyse, ilk kelimeyle tekrar ara
+            parts = player_name.strip().split()
+            if len(parts) > 1 and not player_name.endswith(" "): # Avoid infinite loop
+                return search_players(parts[0])
+            return results
+
+        tbody = player_table.find('tbody')
+        if not tbody: return results
+
+        for row in tbody.find_all('tr', recursive=False):
             link = row.find('a', href=re.compile(r'/profil/spieler/'))
             if link:
                 href = link['href']
                 full_url = BASE_URL + href if not href.startswith('http') else href
                 if full_url in seen_urls: continue
                 seen_urls.add(full_url)
+                
+                # İsim: genelde title'da daha temizdir
                 name = link.get('title') or link.get_text(strip=True)
+                
                 img = row.find('img')
                 img_url = img.get('src') if img else ''
+                
                 club = "-"
                 club_img = row.find('img', class_='tiny_wappen')
-                if club_img: club = club_img.get('title') or '-'
-                results.append({'name': name, 'url': full_url, 'image_url': img_url, 'club': club})
+                if club_img: 
+                    club = club_img.get('title') or club_img.get('alt') or '-'
+                
+                results.append({
+                    'name': name, 
+                    'url': full_url, 
+                    'image_url': img_url, 
+                    'club': club
+                })
     except Exception as e:
-        print(f"Search error: {e}")
+        print(f"Search error for '{player_name}': {e}")
     return results
 
 def get_team_based_stats(profile_url):
@@ -403,6 +459,9 @@ def get_mv_history_from_page(player_url):
 def scrape_player_profile(url):
     try:
         response = requests.get(url, headers=HEADERS, timeout=15)
+        if response.status_code != 200:
+            return {"error": f"Transfermarkt error: {response.status_code}"}
+        
         soup = BeautifulSoup(response.content, 'html.parser')
         
         player_id = None
